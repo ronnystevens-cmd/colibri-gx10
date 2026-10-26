@@ -128,6 +128,35 @@ colibri-public/
 
 ---
 
+## Reproduce it yourself
+
+You need: one DGX Spark (GB10, 121 GB unified), a fast NVMe with the model on it,
+Python 3.10+ with numpy (PoC) or CUDA-torch 2.9.0+cu130 (GPU phase).
+
+```bash
+# 1. Get the model (DeepSeek-V4.1-Flash-1017, 511 GB) from its original source.
+#    Point the scripts at the directory with the 48 safetensors shards.
+
+# 2. CPU reference — full 40-layer decode loop (correctness baseline)
+python src/colibri_f5.py --tokens 64
+
+# 3. Engram + DSPark/MTP correctness layer
+python src/colibri_f7.py --tokens 6
+
+# 4. GPU phase (needs CUDA-torch on GB10)
+python src/f7g_run16.py          # 16-token identity check (expect ≤ ~2.5e-06)
+python src/colibri_f7g2.py       # full 64-token GPU run (experts on GPU)
+
+# 5. Verify against the golden reference
+diff <(head -64 results/f7ref64.goud.log) <(python src/colibri_f5.py --tokens 64)
+```
+
+The expected correctness bar: identity GPU-vs-CPU **≤ 1e-5**, engram gate Δ = 0.0.
+If you see NaNs in dense tensors, read `docs/model-format.md` — this checkpoint's
+E4M3 encoding uses `exp=15` as valid, which default tables treat as NaN.
+
+---
+
 ## Contribute
 
 Open issues / PRs for:
