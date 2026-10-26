@@ -1,0 +1,5 @@
+colibri_f7 CPU fp32 (vaste compacte lagen, zware GEMV fp32) — 64 tokens, exp-cache=32
+[f5] embed/head/norm geladen: 2.99s, NVMe-bytes 2.65 GB
+[f7] DSPark-head geladen: 0.5s
+[f7g] compact vast: 40 lagen, 6.84 GB, init 10.8s
+[f7g] identiteit fp32: 32 controles, max 0
