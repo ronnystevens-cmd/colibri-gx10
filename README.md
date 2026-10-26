@@ -10,6 +10,8 @@ CPU dequant/matmul. GPU acceleration is the active workstream.**
 
 ---
 
+![Colibri principle](docs/colibri-diagram.svg)
+
 ## What this is
 
 DeepSeek-V4.1-Flash-1017 is a **511 GB / 476 GiB** model (48 safetensors shards).
