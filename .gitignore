@@ -1,0 +1,15 @@
+# Model weights / large binaries — NOT to be committed
+*.safetensors
+*.col
+*.gguf
+*.bin
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Scratch
+*.tmp
+*.swp
+.DS_Store
