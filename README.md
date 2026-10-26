@@ -72,12 +72,22 @@ This is exactly how a hummingbird survives on nectar: don't carry the whole mead
   confidence head — structurally correct, greedy accept against draft confidence
 - Live 6-token run: EXIT=0, deterministic draft-accept cycles
 
-### F7G — GPU acceleration (GB10) — *in progress*
+### F7G — GPU acceleration (GB10) — *weight-level identity proven; full-chain NOT yet*
 - GEMV calibration: experts **0.252 ms**, engram **1.485 ms** (fp16) → projection
   **~617 tok/min** (~440× CPU f7) — *theoretical, not yet fully realized*
-- 16-token GPU run (dense GEMVs on GPU): identity vs CPU **max 2.457e-06**,
+- 16-token GPU run (dense GEMVs on GPU): **32 weight-controls max 2.457e-06**,
   peak RSS **17.81 GB**
-- Full 64-token GPU run (experts on GPU) is the active workstream.
+- Full 64-token GPU run completed (3135 s, peak RSS 19.81 GB, ~49 s/step
+  — note: experts/embed/head/KV/engram/DSPark still run on CPU reference path;
+  only the dense GEMVs are GPU-accelerated)
+
+**⚠ Honest finding (verified by cross-check): the GPU-accelerated dense path does
+NOT reproduce the CPU token sequence.** With the same seed (989), the CPU core
+produces the 989→989 attractor loop, while the GPU run diverges to a completely
+different chain (989→62876→122476→…). Weight-level identity (≤2.46e-06 on 32
+dense-column controls) is proven; **full autoregressive chain identity is NOT** —
+fp16-vs-fp32 accumulation over 40 layers flips the argmax early. This is an open
+research item, not a hidden success.
 
 ---
 

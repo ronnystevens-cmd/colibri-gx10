@@ -10,7 +10,7 @@ Every run is deterministic and can be re-verified from `results/`.
 | **F4** | Single-layer PoC (layer 0) | ✅ done | decode ~1.9 tok/s (expert cache), dense 0.55 s | `colibri_f5.py` |
 | **F5** | Full 40-layer decode loop | ✅ done, EXIT=0 | dense core 6.84 GB resident, ~0.02 tok/s CPU, 4.5 GB NVMe/token | `f5` logs |
 | **F7** | Engram + DSPark/MTP correctness | ✅ numerically proven | engram hash **exact**, gate Δ = 0.0, NVMe engram live | `f7ref64.goud.log` |
-| **F7G** | GPU acceleration (GB10) | 🔄 active | GEMV 0.252/1.485 ms → ~617 tok/min projection; 16-token identity max 2.457e-06 | `f7gpu16.log` |
+| **F7G** | GPU acceleration (GB10) | ⚠️ weight-identity ✅, chain-identity ❌ | GEMV 0.252/1.485 ms → ~617 tok/min projection; 32 weight-controls max 2.457e-06; 64-token run 3135 s — but token chain diverges from CPU | `f7gpu64.log`, `f7_cpu_seed989.log` |
 
 ## Key measurements
 
@@ -32,8 +32,20 @@ Every run is deterministic and can be re-verified from `results/`.
 ### GPU phase (GB10, CUDA-torch 2.9.0+cu130)
 - fp16 GEMV calibration: experts **0.252 ms**, engram **1.485 ms**
 - → projection **~617 tok/min** (theoretical, compute-only, excludes NVMe floor)
-- 16-token GPU run: identity vs CPU **max 2.457e-06** (32 controls), peak RSS **17.81 GB**
-- Full 64-token GPU run (experts on GPU): **active workstream**
+- 16-token GPU run: **32 dense-column weight-controls max 2.457e-06**, peak RSS **17.81 GB**
+- 64-token GPU run completed: 3135 s total, peak RSS 19.81 GB, ~49 s/step
+
+### ⚠ GPU vs CPU chain divergence (verified cross-check)
+Same seed (989), same model, same input:
+- **CPU core (fp32)**: 989→989→989→… (stable attractor loop)
+- **GPU run (fp16 dense)**: 989→62876→122476→117821→… (diverges)
+
+Weight-level identity is proven (≤2.46e-06 across 32 dense-column controls), but the
+**full autoregressive token chain does not match**. Cause hypothesis: fp16-vs-fp32
+accumulation over 40 layers shifts logits enough that argmax flips early. This is
+reported as an **open research item** — not hidden as a success.
+
+Evidence: `results/f7_cpu_seed989.log` (CPU), `results/f7gpu64.bewijs.json` (GPU).
 
 ## The physical floor (honest)
 - 4.5 GB NVMe per token → at realistic 1-3 GB/s sustained, **~1-3 tok/s ceiling**
